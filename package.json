@@ -1,0 +1,35 @@
+{
+  "name": "@mafintosh/ims",
+  "version": "0.0.0",
+  "description": "Install My Stuff - an optionated npm module installer",
+  "main": "index.js",
+  "dependencies": {
+    "diffy": "^2.0.0",
+    "gunzip-maybe": "^1.4.1",
+    "hyperdiscovery": "^8.0.0",
+    "hypertrie": "^2.1.0",
+    "mkdirp": "^0.5.1",
+    "ndjson": "^1.5.0",
+    "protocol-buffers-encodings": "^1.1.0",
+    "pump": "^3.0.0",
+    "semver": "^5.5.0",
+    "simple-get": "^3.0.2",
+    "sodium-universal": "^2.0.0",
+    "stream-each": "^1.2.2",
+    "tar-fs": "^1.16.3"
+  },
+  "devDependencies": {},
+  "bin": {
+    "ims": "./install.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mafintosh/ims.git"
+  },
+  "author": "Mathias Buus (@mafintosh)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mafintosh/ims/issues"
+  },
+  "homepage": "https://github.com/mafintosh/ims"
+}

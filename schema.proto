@@ -1,0 +1,20 @@
+message Package {
+  message Dep {
+    required string name = 1;
+    required string range = 2;
+  }
+
+  optional uint64 sameDependencies = 1;
+  repeated Dep dependencies = 2;
+  repeated Dep devDependencies = 3;
+}
+
+message ResolveRequest {
+  required string name = 1;
+  optional string range = 2;
+  optional bool production = 3;
+}
+
+message ResolveResult {
+  repeated uint64 seqs = 1 [packed=true];
+}
