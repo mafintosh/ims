@@ -8,6 +8,7 @@
     "gunzip-maybe": "^1.4.1",
     "hyperdiscovery": "^8.0.0",
     "hypertrie": "^2.1.0",
+    "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
     "ndjson": "^1.5.0",
     "protocol-buffers-encodings": "^1.1.0",
@@ -18,7 +19,12 @@
     "stream-each": "^1.2.2",
     "tar-fs": "^1.16.3"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "standard": "^11.0.1"
+  },
+  "scripts": {
+    "test": "standard"
+  },
   "bin": {
     "ims": "./install.js"
   },

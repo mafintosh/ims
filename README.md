@@ -19,6 +19,19 @@ The module tarballs themself are still downloaded from the npm registry
 ims hypercore
 ```
 
+For more options do `ims --help`
+
+```
+Usage: ims <package-name?> [options]
+
+  --save, -s        saves the dep to package.json
+  --save-dev, -S    saves the dev dep to package.json
+  --global, -g      installs as a cli tool
+  --production, -p  skip dev dependencies
+
+If <package-name> is omitted the deps from package.json is used
+```
+
 IMS stores its cache in `~/.ims`.
 
 Note that it uses sparse files for its database format so use `ls -sh` to list the *actual* size of the cache.

@@ -174,7 +174,7 @@ class IMS {
 
       self.getLatest(name, range, function (err, node) {
         if (err) return cb(err)
-        if (!node) return cb(new Error('Module not found'))
+        if (!node) return cb(new Error('Module ' + name + '@' + range + ' not found'))
 
         const pkg = parse(node.key)
         const visited = inTree(tree, pkg.name, pkg.version)
