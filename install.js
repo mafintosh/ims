@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const get = require('simple-get')
+const { Pool } = require('undici')
 const path = require('path')
 const mkdirp = require('mkdirp')
 const fs = require('fs')
@@ -12,6 +12,14 @@ const os = require('os')
 const IMS = require('./')
 const trim = require('diffy/trim+newline')
 const minimist = require('minimist')
+
+const pool = new Pool('https://registry.npmjs.org', {
+  // magic numbers on what works good on my OS
+  // if those high number of connections are not needed
+  // they won't be used
+  connections: 128,
+  pipelining: 2
+})
 
 const argv = minimist(process.argv.slice(2), {
   alias: {
@@ -274,11 +282,14 @@ function fetch (pkg, cache, cb) {
 
     downloads++
     diffy.render()
-    get('https://registry.npmjs.org/' + pkg.name + '/-/' + pkg.name + '-' + pkg.version + '.tgz', function (err, res) {
+    pool.request({
+      method: 'GET',
+      path: '/' + pkg.name + '/-/' + pkg.name + '-' + pkg.version + '.tgz'
+    }, function (err, res) {
       if (err) return done(err)
       if (res.statusCode !== 200) return done(new Error('Bad response (' + res.statusCode + ')'))
 
-      pump(res, fs.createWriteStream(cache + '.tmp'), function (err) {
+      pump(res.body, fs.createWriteStream(cache + '.tmp'), function (err) {
         if (err) return done(err)
         fs.rename(cache + '.tmp', cache, done)
       })
