@@ -1,9 +1,9 @@
-# @mafintosh/ims
+# ims
 
 Install My Stuff - an opinionated npm module installer
 
 ```
-npm install -g @mafintosh/ims
+npm install -g ims
 ```
 
 IMS is a npm module installer that uses an p2p cache hosted on the Dat network to resolve all dependencies as fast as possible.

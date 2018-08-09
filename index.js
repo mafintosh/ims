@@ -59,8 +59,12 @@ class IMS {
     this.ready(noop)
 
     function update () {
-      self.db.feed.update(update)
+      self.update(update)
     }
+  }
+
+  update (cb) {
+    this.db.feed.update(cb)
   }
 
   ready (cb) {

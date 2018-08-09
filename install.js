@@ -20,9 +20,10 @@ const argv = minimist(process.argv.slice(2), {
     'save-dev': 'S',
     key: 'k',
     production: 'p',
-    help: 'h'
+    help: 'h',
+    update: 'u'
   },
-  boolean: ['help', 'global', 'save', 'save-dev', 'production']
+  boolean: ['update', 'help', 'global', 'save', 'save-dev', 'production']
 })
 
 const key = argv.key || '13f46b517a126b5d3f64cd2a7ec386140b06b38be6a7a47ffb5ba9b6461ee563'
@@ -104,20 +105,27 @@ ims.ready(function () {
   diffy.render()
   sw = require('hyperdiscovery')(ims).once('connection', function () {
     diffy.render()
-    ims.resolve(name, opts, function (err, tree) {
-      if (err) return onerror(err)
-      installed = true
 
-      if (localPkg && (argv['save-dev'] || argv.save) && !argv.global) {
-        const key = argv.save ? 'dependencies' : 'devDependencies'
-        const deps = localPkg[key] || {}
-        deps[name] = '^' + tree.version
-        localPkg[key] = sort(deps)
-        fs.writeFileSync('package.json', JSON.stringify(localPkg, null, 2) + '\n')
-      }
+    if (!argv.update) return resolve()
+    ims.update(resolve)
 
-      if (!missing) exit()
-    })
+    function resolve () {
+      diffy.render()
+      ims.resolve(name, opts, function (err, tree) {
+        if (err) return onerror(err)
+        installed = true
+
+        if (localPkg && (argv['save-dev'] || argv.save) && !argv.global) {
+          const key = argv.save ? 'dependencies' : 'devDependencies'
+          const deps = localPkg[key] || {}
+          deps[name] = '^' + tree.version
+          localPkg[key] = sort(deps)
+          fs.writeFileSync('package.json', JSON.stringify(localPkg, null, 2) + '\n')
+        }
+
+        if (!missing) exit()
+      })
+    }
   })
 })
 

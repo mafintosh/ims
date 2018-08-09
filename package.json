@@ -1,7 +1,7 @@
 {
-  "name": "@mafintosh/ims",
+  "name": "ims",
   "version": "1.1.0",
-  "description": "Install My Stuff - an optionated npm module installer",
+  "description": "Install My Stuff - an opinionated npm module installer",
   "main": "index.js",
   "dependencies": {
     "diffy": "^2.0.0",
