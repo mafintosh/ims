@@ -13,7 +13,6 @@
     "ndjson": "^1.5.0",
     "protocol-buffers-encodings": "^1.1.0",
     "pump": "^3.0.0",
-    "simple-get": "^3.0.2",
     "semver": "^5.5.0",
     "sodium-universal": "^2.0.0",
     "stream-each": "^1.2.2",
