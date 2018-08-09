@@ -3,25 +3,31 @@ const fs = require('fs')
 const hyperdiscovery = require('hyperdiscovery')
 const IMS = require('./')
 
-const ims = new IMS(process.env.HOME + '/npm.db')
+if (!process.env.HOME) process.env.HOME = '/root'
+
+const key = process.argv[2]
+const ims = new IMS(process.env.HOME + '/npm.db', key || null, {sparse: false})
 const db = ims.db
 
 db.ready(function () {
   hyperdiscovery(ims)
+  if (db.feed.writable) onwritable()
 })
 
 var state = ''
 var id = ''
 var inc = 0
 
-setInterval(function () {
-  if (id === toId()) return
-  id = toId()
-  console.log('state:', state)
-  console.log('feed:', db.feed)
-}, 5000)
+function onwritable () {
+  setInterval(function () {
+    if (id === toId()) return
+    id = toId()
+    console.log('state:', state)
+    console.log('feed:', db.feed)
+  }, 5000)
 
-runImport()
+  runImport()
+}
 
 function toId () {
   return state + '@' + db.feed.length
