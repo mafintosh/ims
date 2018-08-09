@@ -29,6 +29,8 @@ Usage: ims <package-name?> [options]
   --global, -g      installs as a cli tool
   --production, -p  skip dev dependencies
   --update, -u      force update the cache
+  --quiet, -q       do not print anything
+  --seed            seed all metadata on the dat network
 
 If <package-name> is omitted the deps from package.json is used
 ```

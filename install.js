@@ -21,18 +21,19 @@ const argv = minimist(process.argv.slice(2), {
     key: 'k',
     production: 'p',
     help: 'h',
-    update: 'u'
+    update: 'u',
+    quiet: 'q'
   },
-  boolean: ['update', 'help', 'global', 'save', 'save-dev', 'production']
+  boolean: ['seed', 'quiet', 'update', 'help', 'global', 'save', 'save-dev', 'production']
 })
 
 const key = argv.key || '13f46b517a126b5d3f64cd2a7ec386140b06b38be6a7a47ffb5ba9b6461ee563'
 const dir = path.join(os.homedir(), '.ims')
-const ims = IMS(path.join(dir, 'db'), key)
+const ims = IMS(path.join(dir, 'db'), key, {sparse: !argv.seed})
 const localPkg = fs.existsSync('package.json') && require(path.join(process.cwd(), 'package.json'))
 const name = argv._[0] || localPkg
 
-if (!name || argv.help) {
+if (!name || argv.help && !argv.seed) {
   console.error('Usage: ims <package-name?> [options]')
   console.error('')
   console.error('  --save, -s        saves the dep to package.json')
@@ -40,10 +41,14 @@ if (!name || argv.help) {
   console.error('  --global, -g      installs as a cli tool')
   console.error('  --production, -p  skip dev dependencies')
   console.error('  --update, -u      force update the cache')
+  console.error('  --quiet, -q       do not print anything')
+  console.error('  --seed            seed all metadata on the dat network')
   console.error('')
   console.error('If <package-name> is omitted the deps from package.json is used')
   process.exit()
 }
+
+if (argv.seed) argv.quiet = true
 
 const base = argv.global ? '/usr/local/lib/node_modules' : './node_modules'
 
@@ -68,6 +73,7 @@ const opts = {
   ondep: function (pkg, tree) {
     const shard = hashShard(pkg.name + '@' + pkg.version)
     const cache = path.join(dir, 'cache', shard)
+    const topLevel = typeof name === 'string' ? !tree.parent : (tree.parent && !tree.parent.parent)
 
     missing++
 
@@ -81,16 +87,33 @@ const opts = {
 
       const nm = path.join(base, '..', pathify(tree))
       const check = path.join(nm, '.ims')
+      var pkg = null
 
       fs.readFile(check, 'utf-8', function (_, stored) {
         if (stored === shard) return done(null)
         fs.unlink(check, function () {
-          pump(fs.createReadStream(cache), gunzip(), tar.extract(nm, {map}), function (err) {
+          pump(fs.createReadStream(cache), gunzip(), tar.extract(nm, {map, mapStream}), function (err) {
             if (err) return onerror(err)
-            fs.writeFile(check, shard, done)
+            linkBins(pkg, '..', path.join(nm, '../.bin'), function (err) {
+              if (err) return onerror(err)
+              fs.writeFile(check, shard, done)
+            })
           })
         })
       })
+
+      function mapStream (stream, header) {
+        if (header.name !== 'package.json') return stream
+        if (!topLevel) return stream
+
+        const buf = []
+        stream.on('data', data => buf.push(data))
+        stream.on('end', function () {
+          pkg = JSON.parse(Buffer.concat(buf))
+        })
+
+        return stream
+      }
 
       function done (err) {
         if (err) return onerror(err)
@@ -103,10 +126,14 @@ const opts = {
 }
 
 ims.ready(function () {
-  diffy.render()
-  sw = require('hyperdiscovery')(ims).once('connection', function () {
-    diffy.render()
+  if (argv.seed) {
+    require('hyperdiscovery')(ims)
+    return
+  }
 
+  diffy.render()
+
+  sw = require('hyperdiscovery')(ims).once('connection', function () {
     if (!argv.update) return resolve()
     ims.update(resolve)
 
@@ -128,6 +155,9 @@ ims.ready(function () {
       })
     }
   })
+
+  // always render on connections
+  sw.on('connection', () => diffy.render())
 })
 
 function map (header) {
@@ -159,35 +189,57 @@ function hashShard (name) {
   return path.join(hex.slice(0, 2), hex.slice(2, 4), hex.slice(4))
 }
 
-function exit () {
+function linkBins (pkg, dir, binDir, cb) {
+  if (!pkg) return cb(null)
+
   var missing = 1
+  var error = null
 
-  ended = Date.now()
-  diffy.render()
-  if (!argv.global) return exitMaybe()
+  if (!pkg.bin || !pkg.name) return done(null)
+  if (/(^\.)|[/\\]/.test(pkg.name)) return done(null)
 
-  const pkg = require(path.join(base, name, 'package.json'))
-  if (!pkg.bin) return exitMaybe()
-
-  const bin = typeof pkg.bin === 'string' ? {[name]: pkg.bin} : pkg.bin
+  const bin = typeof pkg.bin === 'string' ? {[pkg.name]: pkg.bin} : pkg.bin
 
   for (const k of Object.keys(bin)) {
     if (/(^\.)|[/\\]/.test(k)) continue
     missing++
-    const exe = path.join(base, name, bin[k])
-    fs.symlink(exe, path.join('/usr/local/bin', k), function (err) {
-      if (err && err.code !== 'EEXIST') return onerror(err)
-      fs.chmod(exe, 0o755, function (err) {
-        if (err) return onerror(err)
-        exitMaybe()
-      })
-    })
+    link(path.join(dir, pkg.name, bin[k]), k)
   }
 
-  exitMaybe()
+  done(null)
 
-  function exitMaybe () {
+  function link (exe, k) {
+    fs.symlink(exe, path.join(binDir, k), function (err) {
+      if (err && err.code === 'ENOENT') return mkdirp(binDir, retry)
+      if (err && err.code !== 'EEXIST') return done(err)
+      fs.chmod(path.join(binDir, exe), 0o755, done)
+    })
+
+    function retry (err) {
+      if (err) return done(err)
+      link(exe, k)
+    }
+  }
+
+  function done (err) {
+    if (err) error = err
     if (--missing) return
+    cb(error)
+  }
+}
+
+function exit () {
+  diffy.render()
+
+  if (!argv.global) return done(null)
+
+  const pkg = require(path.join(base, name, 'package.json'))
+  linkBins(pkg, '../lib/node_modules', '/usr/local/bin', done)
+
+  function done (err) {
+    if (err) return onerror(err)
+    ended = Date.now()
+    diffy.render()
     setImmediate(() => process.exit())
   }
 }
@@ -197,6 +249,8 @@ function onerror (err) {
 }
 
 function render () {
+  if (argv.quiet) return ''
+
   const time = ended ? '(took ' + (ended - started) + 'ms)' : ''
   const latest = ims.db.version ? '(Latest version: ' + ims.db.version + ')' : ''
 
