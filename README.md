@@ -28,6 +28,7 @@ Usage: ims <package-name?> [options]
   --save-dev, -S    saves the dev dep to package.json
   --global, -g      installs as a cli tool
   --production, -p  skip dev dependencies
+  --update, -u      force update the cache
 
 If <package-name> is omitted the deps from package.json is used
 ```

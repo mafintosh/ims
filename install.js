@@ -39,6 +39,7 @@ if (!name || argv.help) {
   console.error('  --save-dev, -S    saves the dev dep to package.json')
   console.error('  --global, -g      installs as a cli tool')
   console.error('  --production, -p  skip dev dependencies')
+  console.error('  --update, -u      force update the cache')
   console.error('')
   console.error('If <package-name> is omitted the deps from package.json is used')
   process.exit()
