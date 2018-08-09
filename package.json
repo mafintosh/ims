@@ -14,10 +14,10 @@
     "protocol-buffers-encodings": "^1.1.0",
     "pump": "^3.0.0",
     "semver": "^5.5.0",
-    "simple-get": "^3.0.2",
     "sodium-universal": "^2.0.0",
     "stream-each": "^1.2.2",
-    "tar-fs": "^1.16.3"
+    "tar-fs": "^1.16.3",
+    "undici": "^0.3.0"
   },
   "devDependencies": {
     "standard": "^11.0.1"
