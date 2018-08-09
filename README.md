@@ -1,6 +1,6 @@
 # @mafintosh/ims
 
-Install My Stuff - an opionated npm module installer
+Install My Stuff - an opinionated npm module installer
 
 ```
 npm install -g @mafintosh/ims
