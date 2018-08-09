@@ -13,6 +13,10 @@ const IMS = require('./')
 const trim = require('diffy/trim+newline')
 const minimist = require('minimist')
 
+var tick = 1
+var rendered = 0
+setInterval(() => tick++, 250).unref()
+
 const pool = new Pool('https://registry.npmjs.org', {
   // magic numbers on what works good on my OS
   // if those high number of connections are not needed
@@ -126,7 +130,7 @@ const opts = {
       function done (err) {
         if (err) return onerror(err)
         installs++
-        diffy.render()
+        renderMaybe()
         if (!--missing && installed) exit()
       }
     }
@@ -256,6 +260,12 @@ function onerror (err) {
   if (err) throw err
 }
 
+function renderMaybe () {
+  if (tick === rendered) return
+  rendered = tick
+  diffy.render()
+}
+
 function render () {
   if (argv.quiet) return ''
 
@@ -281,7 +291,7 @@ function fetch (pkg, cache, cb) {
     if (err) return done(err)
 
     downloads++
-    diffy.render()
+    renderMaybe()
     pool.request({
       method: 'GET',
       path: '/' + pkg.name + '/-/' + pkg.name + '-' + pkg.version + '.tgz'
