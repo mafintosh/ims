@@ -43,9 +43,10 @@ const key = argv.key || '13f46b517a126b5d3f64cd2a7ec386140b06b38be6a7a47ffb5ba9b
 const dir = path.join(os.homedir(), '.ims')
 const ims = IMS(path.join(dir, 'db'), key, {sparse: !argv.seed})
 const localPkg = fs.existsSync('package.json') && require(path.join(process.cwd(), 'package.json'))
-const name = argv._[0] || localPkg
+const name = getName(argv._[0]) || localPkg
+const range = getRange(argv._[0])
 
-if (!name || argv.help && !argv.seed) {
+if (argv.help || (!name && !argv.seed)) {
   console.error('Usage: ims <package-name?> [options]')
   console.error('')
   console.error('  --save, -s        saves the dep to package.json')
@@ -81,6 +82,7 @@ const diffy = require('diffy')()
 diffy.render(render)
 
 const opts = {
+  range,
   production: argv.production,
   ondep: function (pkg, tree) {
     const shard = hashShard(pkg.name + '@' + pkg.version)
@@ -158,7 +160,7 @@ ims.ready(function () {
         if (localPkg && (argv['save-dev'] || argv.save) && !argv.global) {
           const key = argv.save ? 'dependencies' : 'devDependencies'
           const deps = localPkg[key] || {}
-          deps[name] = '^' + tree.version
+          deps[name] = range || ('^' + tree.version)
           localPkg[key] = sort(deps)
           fs.writeFileSync('package.json', JSON.stringify(localPkg, null, 2) + '\n')
         }
@@ -310,4 +312,14 @@ function fetch (pkg, cache, cb) {
     for (const cb of fetching.get(cache)) cb(err)
     fetching.delete(cache)
   }
+}
+
+function getRange (name) {
+  if (!name || !/.@/.test(name)) return null
+  return name.split('@').pop()
+}
+
+function getName (name) {
+  if (!name || !/.@/.test(name)) return name
+  return name.split('@').slice(0, -1).join('@')
 }
