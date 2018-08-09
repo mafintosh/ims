@@ -6,7 +6,7 @@ const IMS = require('./')
 if (!process.env.HOME) process.env.HOME = '/root'
 
 const key = process.argv[2]
-const ims = new IMS(process.env.HOME + '/npm.db', key || null, {sparse: false})
+const ims = IMS(process.env.HOME + '/npm.db', key || null, {sparse: false})
 const db = ims.db
 
 db.ready(function () {
