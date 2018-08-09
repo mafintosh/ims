@@ -258,7 +258,7 @@ class IMS {
           if (seqs) seqs.add(node.seq)
           const pkg = parse(node.key)
           const v = pkg.version
-          if (semver.satisfies(v, range) && (!latest || semver.gt(v, latest))) {
+          if (satisfies(v, range) && (!latest || semver.gt(v, latest))) {
             latest = v
             latestNode = node
           }
@@ -309,5 +309,13 @@ function toJSON () {
     version: this.version,
     range: this.range,
     deps
+  }
+}
+
+function satisfies (a, b) {
+  try {
+    return semver.satisfies(a, b)
+  } catch (err) {
+    return false
   }
 }
