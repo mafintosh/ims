@@ -1,6 +1,6 @@
 {
   "name": "ims",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Install My Stuff - an opinionated npm module installer",
   "main": "index.js",
   "dependencies": {
