@@ -17,6 +17,13 @@ var tick = 1
 var rendered = 0
 setInterval(() => tick++, 250).unref()
 
+// we have some bug in the seed'er so whitelist
+// against these peers until we fix it
+const whitelist = [
+  '88.99.3.86',
+  '159.65.107.57'
+]
+
 const pool = new Pool('https://registry.npmjs.org', {
   // magic numbers on what works good on my OS
   // if those high number of connections are not needed
@@ -141,13 +148,13 @@ const opts = {
 
 ims.ready(function () {
   if (argv.seed) {
-    require('hyperdiscovery')(ims)
+    require('hyperdiscovery')(ims, {whitelist})
     return
   }
 
   diffy.render()
 
-  sw = require('hyperdiscovery')(ims).once('connection', function () {
+  sw = require('hyperdiscovery')(ims, {whitelist}).once('connection', function () {
     if (!argv.update) return resolve()
     ims.update(resolve)
 
