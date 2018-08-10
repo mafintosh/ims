@@ -228,6 +228,7 @@ class IMS {
 
   getLatest (name, range, opts, cb) {
     if (typeof opts === 'function') return this.getLatest(name, range, null, opts)
+    if (range === 'latest') range = '*'
 
     const db = this.db
     const seqs = opts ? opts.seqs : null
