@@ -6,7 +6,7 @@ Install My Stuff - an opinionated npm module installer
 npm install -g ims
 ```
 
-IMS is a npm module installer that uses an p2p cache hosted on the Dat network to resolve all dependencies as fast as possible.
+IMS is a npm module installer that uses a p2p cache hosted on the Dat network to resolve all dependencies as fast as possible.
 
 The cache is stored in a [hypertrie](https://github.com/mafintosh/hypertrie) which makes it fast to update and always get the latest version while minimising the amount of roundtrips, compared to `npm install`.
 
