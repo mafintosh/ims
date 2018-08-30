@@ -8,6 +8,7 @@ const sodium = require('sodium-universal')
 const pump = require('pump')
 const tar = require('tar-fs')
 const gunzip = require('gunzip-maybe')
+const fastq = require('fastq')
 const os = require('os')
 const IMS = require('./')
 const trim = require('diffy/trim+newline')
@@ -88,6 +89,33 @@ const diffy = require('diffy')()
 
 diffy.render(render)
 
+const Q = fastq(work, 42)
+
+function work ({ cache, nm, topLevel }, cb) {
+  var pkg = null
+  pump(fs.createReadStream(cache), gunzip(), tar.extract(nm, {map, mapStream}), function (err) {
+    if (err) return cb(err)
+    linkBins(pkg, '..', path.join(nm, '../.bin'), function (err) {
+      if (err) return cb(err)
+
+      cb(null, pkg)
+    })
+  })
+
+  function mapStream (stream, header) {
+    if (header.name !== 'package.json') return stream
+    if (!topLevel) return stream
+
+    const buf = []
+    stream.on('data', data => buf.push(data))
+    stream.on('end', function () {
+      pkg = JSON.parse(Buffer.concat(buf))
+    })
+
+    return stream
+  }
+}
+
 const opts = {
   range,
   production: argv.production,
@@ -113,28 +141,12 @@ const opts = {
       fs.readFile(check, 'utf-8', function (_, stored) {
         if (stored === shard) return done(null)
         fs.unlink(check, function () {
-          pump(fs.createReadStream(cache), gunzip(), tar.extract(nm, {map, mapStream}), function (err) {
+          Q.push({ cache, nm, topLevel }, function (err, pkg) {
             if (err) return onerror(err)
-            linkBins(pkg, '..', path.join(nm, '../.bin'), function (err) {
-              if (err) return onerror(err)
-              fs.writeFile(check, shard, done)
-            })
+            fs.writeFile(check, shard, done)
           })
         })
       })
-
-      function mapStream (stream, header) {
-        if (header.name !== 'package.json') return stream
-        if (!topLevel) return stream
-
-        const buf = []
-        stream.on('data', data => buf.push(data))
-        stream.on('end', function () {
-          pkg = JSON.parse(Buffer.concat(buf))
-        })
-
-        return stream
-      }
 
       function done (err) {
         if (err) return onerror(err)
