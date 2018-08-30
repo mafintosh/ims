@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "diffy": "^2.0.0",
+    "fastq": "^1.6.0",
     "gunzip-maybe": "^1.4.1",
     "hyperdiscovery": "^8.0.0",
     "hypertrie": "^2.1.0",
